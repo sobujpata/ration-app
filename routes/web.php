@@ -3,6 +3,7 @@
 use App\Http\Controllers\PersonnelTypeController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PurchaseVoucherController;
 use App\Http\Controllers\RationVoucherCategoryController;
 use App\Http\Controllers\VoucherController;
 use App\Http\Middleware\EnsureUserCanAccessDashboard;
@@ -51,6 +52,15 @@ Route::middleware(['auth', 'verified', EnsureUserCanAccessDashboard::class])->gr
     Route::get('/vouchers/{voucher}/edit', [VoucherController::class, 'edit'])->name('vouchers.edit')->middleware('permission::product-menu|product-edit');
     Route::put('/vouchers/{voucher}', [VoucherController::class, 'update'])->name('vouchers.update')->middleware('permission::product-menu|product-edit');
     Route::delete('/vouchers/{id}', [VoucherController::class, 'destroy'])->name('vouchers.destroy')->middleware('permission::product-menu|product-delete');
+    // purchase-vouchers route
+    Route::get('/purchase-vouchers', [PurchaseVoucherController::class, 'index'])->name('purchase-vouchers.index')->middleware('permission::product-menu|product-view');
+    Route::get('/purchase-vouchers-list', [PurchaseVoucherController::class, 'show'])->name('purchase-vouchers.show')->middleware('permission::product-menu|product-view');
+    Route::get('/purchase-vouchers/create', [PurchaseVoucherController::class, 'create'])->name('purchase-vouchers.create')->middleware('permission::product-menu|product-create');
+    Route::post('/purchase-vouchers', [PurchaseVoucherController::class, 'store'])->name('purchase-vouchers.store')->middleware('permission::product-menu|product-create');
+    Route::get('/purchase-vouchers/{purchaseVoucher}/view', [PurchaseVoucherController::class, 'view'])->name('purchase-vouchers.view')->middleware('permission::product-menu|product-view');
+    Route::get('/purchase-vouchers/{purchaseVoucher}/edit', [PurchaseVoucherController::class, 'edit'])->name('purchase-vouchers.edit')->middleware('permission::product-menu|product-edit');
+    Route::put('/purchase-vouchers/{purchaseVoucher}', [PurchaseVoucherController::class, 'update'])->name('purchase-vouchers.update')->middleware('permission::product-menu|product-edit');
+    Route::delete('/purchase-vouchers/{purchaseVoucher}', [PurchaseVoucherController::class, 'destroy'])->name('purchase-vouchers.destroy')->middleware('permission::product-menu|product-delete');
 
 });
 
