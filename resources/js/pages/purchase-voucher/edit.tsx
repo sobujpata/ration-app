@@ -14,14 +14,17 @@ type PurchaseVoucher = {
     voucher_category: string;
     personnel_type: string;
     for_month: string;
+    raising_cost: number;
     status: string;
 };
 type VoucherOption = { id: number; personnel_type: string; category: string };
 
 const statusOptions = [
-    { value: 'processed', label: 'Processed' },
     { value: 'pending', label: 'Pending' },
+    { value: 'processed', label: 'Processed' },
     { value: 'recieved', label: 'Recieved' },
+    { value: 'out-for-delivery', label: 'Out for Delivery' },
+    { value: 'delivered', label: 'Delivered' },
     { value: 'payment', label: 'Payment' },
     { value: 'complete', label: 'Complete' },
 ];
@@ -50,6 +53,7 @@ export default function Edit({ purchaseVoucher, vouchers }: { purchaseVoucher: P
                                     <div className="space-y-2"><Label htmlFor="name">Name</Label><Input id="name" name="name" defaultValue={purchaseVoucher.name} required maxLength={100} /><InputError message={errors.name} /></div>
                                     <div className="space-y-2"><Label htmlFor="phone">Phone</Label><Input id="phone" name="phone" defaultValue={purchaseVoucher.phone} required maxLength={20} /><InputError message={errors.phone} /></div>
                                     <div className="space-y-2"><Label htmlFor="for_month">Month</Label><Input id="for_month" name="for_month" type="month" defaultValue={purchaseVoucher.for_month} required /><InputError message={errors.for_month} /></div>
+                                    <div className="space-y-2"><Label htmlFor="raising_cost">Raising cost</Label><Input id="raising_cost" name="raising_cost" type="number" min="0" step="0.01" defaultValue={purchaseVoucher.raising_cost} required /><InputError message={errors.raising_cost} /></div>
                                     <div className="space-y-2"><Label htmlFor="voucher_id">Voucher category</Label>
                                     <select id="voucher_id" name="voucher_id" defaultValue={purchaseVoucher.voucher_id} required className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 dark:border-slate-800 dark:bg-black dark:text-slate-100">
                                         {vouchers.map((voucher) => 

@@ -19,6 +19,9 @@ return new class extends Migration
             $table->unsignedBigInteger('voucher_id');
             $table->foreign('voucher_id')->references('id')->on('vouchers')->cascadeOnUpdate()->cascadeOnDelete();
             $table->date('for_month');
+            $table->decimal('total_price', 10, 2)->default('0.00');
+            $table->decimal('raising_cost', 10, 2)->default('0.00');
+            $table->decimal('total_payment', 10, 2)->default('0.00');
             $table->string('status', 50)->default('processed');
             $table->unsignedBigInteger('created_by');
             $table->foreign('created_by')->references('id')->on('users')->cascadeOnUpdate()->cascadeOnDelete();

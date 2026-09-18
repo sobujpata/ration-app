@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DeleveredProduct;
 use App\Models\PersonnelType;
 use App\Models\Product;
+use App\Models\PurchaseVoucher;
 use App\Models\RationVoucherCategory;
 use App\Models\Voucher;
 use App\Models\VoucherProduct;
@@ -215,5 +217,167 @@ class VoucherController extends Controller
         $voucher->delete();
 
         return response()->json(['message' => 'Voucher deleted successfully.']);
+    }
+
+    public function customerVouchers()
+    {
+
+        return Inertia::render('customer-vouchers/index');
+    }
+
+    public function customerOrders()
+    {
+        $serviceNo = Auth::user()?->profile?->service_no;
+
+        $orders = $serviceNo
+            ? PurchaseVoucher::query()
+                ->with([
+                    'voucher.category:id,name',
+                    'deliveredProducts.product:id,name,unit',
+                ])
+                ->where('service_no', $serviceNo)
+                ->whereHas('deliveredProducts', fn ($query) => $query->where('status', true))
+                ->orderBy('for_month', 'desc')
+                ->get()
+                ->map(fn (PurchaseVoucher $purchaseVoucher): array => [
+                    'id' => $purchaseVoucher->id,
+                    'category' => $purchaseVoucher->voucher?->category?->name ?? '—',
+                    'for_month' => $purchaseVoucher->for_month?->format('F Y'),
+                    'status' => $purchaseVoucher->status,
+                    'updated_at' => $purchaseVoucher->updated_at?->format('d M Y, h:i A'),
+                    'total_price' => (float) $purchaseVoucher->total_price,
+                    'raising_cost' => (float) $purchaseVoucher->raising_cost,
+                    'total_payment' => (float) $purchaseVoucher->total_payment,
+                    'products' => $purchaseVoucher->deliveredProducts
+                        ->where('status', true)
+                        ->map(fn (DeleveredProduct $deliveredProduct): array => [
+                            'name' => $deliveredProduct->product?->name ?? '—',
+                            'unit' => $deliveredProduct->product?->unit ?? '—',
+                            'quantity' => (float) $deliveredProduct->quantity,
+                            'unit_price' => (float) $deliveredProduct->unit_price,
+                            'total_price' => (float) $deliveredProduct->total_price,
+                        ])
+                        ->values(),
+                ])
+                ->values()
+            : collect();
+
+        return Inertia::render('customer-orders/index', [
+            'orders' => $orders,
+        ]);
+    }
+
+    public function voucherList()
+    {
+        $serviceNo = Auth::user()?->profile?->service_no;
+
+        if (! $serviceNo) {
+            return response()->json([
+                'message' => 'Your customer profile does not have a service number.',
+            ], 422);
+        }
+
+        $vouchers = PurchaseVoucher::query()
+            ->with([
+                'voucher.personnelType:id,name',
+                'voucher.category:id,name',
+                'voucher.voucherProducts.product:id,name,unit,purchase_unit_price',
+            ])
+            ->where('service_no', $serviceNo)
+            ->latest('for_month')
+            ->latest('id')
+            ->get()
+            ->map(fn (PurchaseVoucher $purchaseVoucher): array => [
+                'id' => $purchaseVoucher->id,
+                'service_no' => $purchaseVoucher->service_no,
+                'name' => $purchaseVoucher->name,
+                'phone' => $purchaseVoucher->phone,
+                'personnel_type' => $purchaseVoucher->voucher?->personnelType?->name ?? '—',
+                'category' => $purchaseVoucher->voucher?->category?->name ?? '—',
+                'for_month' => $purchaseVoucher->for_month?->format('F Y'),
+                'total_price' => (float) $purchaseVoucher->total_price,
+                'raising_cost' => (float) $purchaseVoucher->raising_cost,
+                'total_payment' => (float) $purchaseVoucher->total_payment,
+                'status' => $purchaseVoucher->status,
+                'products' => $purchaseVoucher->voucher?->voucherProducts
+                    ->where('status', true)
+                    ->map(fn (VoucherProduct $voucherProduct): array => [
+                        'product_id' => $voucherProduct->product_id,
+                        'name' => $voucherProduct->product?->name ?? '—',
+                        'unit' => $voucherProduct->product?->unit ?? '—',
+                        'quantity' => (float) $voucherProduct->quantity,
+                        'unit_price' => (float) ($voucherProduct->product?->purchase_unit_price ?? 0),
+                    ])
+                    ->values()
+                    ->all() ?? [],
+            ]);
+
+        return response()->json($vouchers);
+    }
+
+    public function order(Request $request, PurchaseVoucher $purchaseVoucher)
+    {
+        $serviceNo = Auth::user()?->profile?->service_no;
+
+        abort_unless($serviceNo && $purchaseVoucher->service_no === $serviceNo, 403);
+        abort_unless($purchaseVoucher->status === 'recieved', 422, 'This voucher is not ready to order.');
+
+        $validated = $request->validate([
+            'products' => ['required', 'array', 'min:1'],
+            'products.*.product_id' => ['required', 'integer', 'distinct', 'exists:products,id'],
+            'products.*.quantity' => ['required', 'numeric', 'gt:0'],
+        ]);
+
+        DB::transaction(function () use ($purchaseVoucher, $validated): void {
+            $lockedPurchaseVoucher = PurchaseVoucher::query()
+                ->lockForUpdate()
+                ->with('voucher.voucherProducts.product:id,purchase_unit_price')
+                ->findOrFail($purchaseVoucher->id);
+
+            abort_unless($lockedPurchaseVoucher->status === 'recieved', 422, 'This voucher is not ready to order.');
+
+            $voucherProducts = $lockedPurchaseVoucher->voucher?->voucherProducts
+                ->where('status', true)
+                ->keyBy('product_id') ?? collect();
+            $orderProducts = collect($validated['products']);
+
+            $orderProducts->each(function (array $orderProduct) use ($voucherProducts): void {
+                $voucherProduct = $voucherProducts->get($orderProduct['product_id']);
+                $orderQuantity = round((float) $orderProduct['quantity'], 3);
+                $originalQuantity = round((float) $voucherProduct?->quantity ?? 0, 3);
+
+                abort_unless($voucherProduct, 422, 'This product is not available in the voucher.');
+                abort_if($orderQuantity > $originalQuantity + 0.0001, 422, 'Order quantity exceeds the voucher quantity.');
+            });
+
+            DeleveredProduct::query()
+                ->where('purchase_voucher_id', $lockedPurchaseVoucher->id)
+                ->delete();
+
+            $orderTotal = 0;
+            $orderProducts->each(function (array $orderProduct) use ($lockedPurchaseVoucher, $voucherProducts, &$orderTotal): void {
+                $unitPrice = (float) $voucherProducts->get($orderProduct['product_id'])->product?->purchase_unit_price;
+                $quantity = round((float) $orderProduct['quantity'], 3);
+                $lineTotal = round($unitPrice * $quantity, 2);
+                $orderTotal += $lineTotal;
+
+                DeleveredProduct::create([
+                    'purchase_voucher_id' => $lockedPurchaseVoucher->id,
+                    'product_id' => $orderProduct['product_id'],
+                    'quantity' => $quantity,
+                    'unit_price' => $unitPrice,
+                    'total_price' => $lineTotal,
+                    'status' => true,
+                    'created_by' => Auth::id(),
+                ]);
+            });
+
+            $lockedPurchaseVoucher->update([
+                'status' => 'processed',
+                'total_payment' => max(0, round((float) $lockedPurchaseVoucher->total_price - (float) $lockedPurchaseVoucher->raising_cost - $orderTotal, 2)),
+            ]);
+        });
+
+        return redirect()->route('customer-vouchers.index')->with('success', 'Your voucher order was submitted successfully.');
     }
 }

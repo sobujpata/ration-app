@@ -12,15 +12,19 @@ type FatchData = {
     phone: string;
     voucher_category: string;
     total_price: number;
+    raising_cost: number;
+    total_payment: number;
     for_month: string;
     status: string;
     created_by: string;
 };
 
 const statusOptions = [
-    { value: 'processed', label: 'Processed', className: 'bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-950 dark:text-blue-300' },
     { value: 'pending', label: 'Pending', className: 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200 dark:bg-yellow-950 dark:text-yellow-300' },
     { value: 'recieved', label: 'Recieved', className: 'bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-950 dark:text-purple-300' },
+    { value: 'processed', label: 'Processed', className: 'bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-950 dark:text-blue-300' },
+    { value: 'out-for-delivery', label: 'Out for Delivery', className: 'bg-pink-100 text-pink-700 hover:bg-pink-200 dark:bg-pink-950 dark:text-pink-300' },
+    { value: 'delivered', label: 'Delivered', className: 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-950 dark:text-gray-300' },
     { value: 'payment', label: 'Payment', className: 'bg-orange-100 text-orange-700 hover:bg-orange-200 dark:bg-orange-950 dark:text-orange-300' },
     { value: 'complete', label: 'Complete', className: 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-950 dark:text-green-300' },
 ];
@@ -55,6 +59,8 @@ export default function Index() {
             datas.phone,
             datas.voucher_category,
             datas.total_price,
+            datas.raising_cost,
+            datas.total_payment,
             datas.for_month,
             datas.status,
             datas.created_by
@@ -200,20 +206,21 @@ export default function Index() {
                                     <th className="dark:border-sky-950 border-b border-slate-200 px-4 py-3 font-semibold">Total Price</th>
                                     <th className="dark:border-sky-950 border-b border-slate-200 px-4 py-3 font-semibold">Month</th>
                                     <th className="dark:border-sky-950 border-b border-slate-200 px-4 py-3 font-semibold">Status</th>
-                                    <th className="dark:border-sky-950 border-b border-slate-200 px-4 py-3 font-semibold">Created By</th>
+                                    <th className="dark:border-sky-950 border-b border-slate-200 px-4 py-3 font-semibold">Raising Cost</th>
+                                    <th className="dark:border-sky-950 border-b border-slate-200 px-4 py-3 font-semibold">Total Payment</th>
                                     <th className="dark:border-sky-950 border-b border-slate-200 px-4 py-3 font-semibold text-center">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {loading ? (
                                     <tr>
-                                        <td colSpan={10} className="px-4 py-10 text-center text-sm text-slate-500">
+                                        <td colSpan={11} className="px-4 py-10 text-center text-sm text-slate-500">
                                             Loading ...
                                         </td>
                                     </tr>
                                 ) : filteredFatchData.length === 0 ? (
                                     <tr>
-                                        <td colSpan={10} className="px-4 py-10 text-center text-sm text-slate-500">
+                                        <td colSpan={11} className="px-4 py-10 text-center text-sm text-slate-500">
                                             {searchTerm ? 'No match your search.' : 'No found.'}
                                         </td>
                                     </tr>
@@ -251,7 +258,10 @@ export default function Index() {
                                                 </button>
                                             </td>
                                             <td className="border-b dark:border-sky-950 border-slate-200 px-4 py-3 font-medium dark:text-slate-100 text-slate-900">
-                                                {data.created_by}
+                                                {Number(data.raising_cost).toFixed(2)}
+                                            </td>
+                                            <td className="border-b dark:border-sky-950 border-slate-200 px-4 py-3 font-medium dark:text-slate-100 text-slate-900">
+                                                {Number(data.total_payment).toFixed(2)}
                                             </td>
                                             <td className="border-b dark:border-sky-950 border-slate-200 px-4 py-3">
                                                 <div className="flex items-center justify-center gap-2">

@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DeleveredProduct;
 use App\Models\PurchaseVoucher;
 use App\Models\Voucher;
 use App\Models\VoucherProduct;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class PurchaseVoucherController extends Controller
@@ -46,6 +49,42 @@ class PurchaseVoucherController extends Controller
     }
 
     /**
+     * Find the latest purchase voucher for a service number.
+     */
+    public function lookup(Request $request)
+    {
+        $validated = $request->validate([
+            'service_no' => ['required', 'string', 'max:10'],
+            'for_month' => ['required', 'date_format:Y-m'],
+        ]);
+
+        $purchaseVoucher = PurchaseVoucher::query()
+            ->with([
+                'voucher.personnelType:id,name',
+                'voucher.category:id,name',
+            ])
+            ->where('service_no', $validated['service_no'])
+            ->latest('id')
+            ->first();
+
+        if (! $purchaseVoucher) {
+            return response()->json(['found' => false]);
+        }
+
+        return response()->json([
+            'found' => true,
+            'same_month' => Carbon::parse($purchaseVoucher->for_month)->format('Y-m') === $validated['for_month'],
+            'service_no' => $purchaseVoucher->service_no,
+            'name' => $purchaseVoucher->name,
+            'phone' => $purchaseVoucher->phone,
+            'voucher_id' => $purchaseVoucher->voucher_id,
+            'raising_cost' => (float) $purchaseVoucher->raising_cost,
+            'personnel_type' => $purchaseVoucher->voucher?->personnelType?->name ?? '—',
+            'category' => $purchaseVoucher->voucher?->category?->name ?? '—',
+        ]);
+    }
+
+    /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
@@ -56,12 +95,30 @@ class PurchaseVoucherController extends Controller
             'phone' => ['required', 'string', 'max:20'],
             'voucher_id' => ['required', 'integer', 'exists:vouchers,id'],
             'for_month' => ['required', 'date_format:Y-m'],
-            'status' => ['required', 'string', 'in:processed,pending,recieved,payment,complete'],
+            'raising_cost' => ['required', 'numeric', 'min:0'],
+            'status' => ['required', 'string', 'in:processed,pending,recieved,payment,out-for-delivery,delivered,complete'],
         ]);
+
+        $request->validate([
+            'service_no' => [
+                Rule::unique('purchase_vouchers', 'service_no')
+                    ->where(fn ($query) => $query->where('for_month', $validated['for_month'].'-01')),
+            ],
+        ]);
+
+        $voucher = Voucher::query()
+            ->with('voucherProducts.product:id,purchase_unit_price')
+            ->findOrFail($validated['voucher_id']);
+        $totalPrice = round($voucher->voucherProducts->where('status', true)->sum(
+            fn (VoucherProduct $voucherProduct): float => (float) $voucherProduct->product?->purchase_unit_price * (float) $voucherProduct->quantity,
+        ), 2);
 
         PurchaseVoucher::create([
             ...$validated,
             'for_month' => $validated['for_month'].'-01',
+            'total_price' => $totalPrice,
+            'raising_cost' => $validated['raising_cost'],
+            'total_payment' => max(0, $totalPrice - (float) $validated['raising_cost']),
             'created_by' => Auth::id(),
         ]);
 
@@ -80,6 +137,7 @@ class PurchaseVoucherController extends Controller
                 'voucher.voucherProducts.product:id,purchase_unit_price',
                 'user:id,name',
             ])
+            ->orderBy('id', 'desc')
             ->get()
             ->map(fn (PurchaseVoucher $purchaseVoucher): array => [
                 'id' => $purchaseVoucher->id,
@@ -87,9 +145,9 @@ class PurchaseVoucherController extends Controller
                 'name' => $purchaseVoucher->name,
                 'phone' => $purchaseVoucher->phone,
                 'voucher_category' => $purchaseVoucher->voucher?->category?->name ?? '—',
-                'total_price' => round($purchaseVoucher->voucher?->voucherProducts
-                    ->where('status', true)
-                    ->sum(fn (VoucherProduct $voucherProduct): float => (float) $voucherProduct->product?->purchase_unit_price * (float) $voucherProduct->quantity) ?? 0, 2),
+                'total_price' => (float) $purchaseVoucher->total_price,
+                'raising_cost' => (float) $purchaseVoucher->raising_cost,
+                'total_payment' => (float) $purchaseVoucher->total_payment,
                 'for_month' => Carbon::parse($purchaseVoucher->for_month)->format('M y'),
                 'status' => $purchaseVoucher->status,
                 'created_by' => $purchaseVoucher->user?->name ?? '—',
@@ -108,11 +166,13 @@ class PurchaseVoucherController extends Controller
             'voucher.category:id,name',
             'voucher.voucherProducts.product:id,name,unit,purchase_unit_price',
             'user:id,name',
+            'deliveredProducts.product:id,name,unit',
         ]);
 
         $voucherProducts = $purchaseVoucher->voucher?->voucherProducts
             ->map(fn (VoucherProduct $voucherProduct): array => [
                 'id' => $voucherProduct->id,
+                'product_id' => $voucherProduct->product_id,
                 'name' => $voucherProduct->product?->name ?? '—',
                 'unit' => $voucherProduct->product?->unit ?? '—',
                 'quantity' => (float) $voucherProduct->quantity,
@@ -138,8 +198,82 @@ class PurchaseVoucherController extends Controller
                     'products' => $voucherProducts,
                     'total_price' => $voucherProducts->where('status', true)->sum('line_total'),
                 ],
+                'total_price' => (float) $purchaseVoucher->total_price,
+                'raising_cost' => (float) $purchaseVoucher->raising_cost,
+                'total_payment' => (float) $purchaseVoucher->total_payment,
+                'delivered_products' => $purchaseVoucher->deliveredProducts->map(fn (DeleveredProduct $deliveredProduct): array => [
+                    'id' => $deliveredProduct->id,
+                    'product_id' => $deliveredProduct->product_id,
+                    'name' => $deliveredProduct->product?->name ?? '—',
+                    'unit' => $deliveredProduct->product?->unit ?? '—',
+                    'quantity' => (float) $deliveredProduct->quantity,
+                    'unit_price' => (float) $deliveredProduct->unit_price,
+                    'total_price' => (float) $deliveredProduct->total_price,
+                ])->values(),
             ],
         ]);
+    }
+
+    /**
+     * Record a partial or full product delivery and recalculate payment.
+     */
+    public function deliver(Request $request, PurchaseVoucher $purchaseVoucher)
+    {
+        $validated = $request->validate([
+            'products' => ['nullable', 'array'],
+            'products.*.product_id' => ['sometimes', 'required', 'integer', 'distinct', 'exists:products,id'],
+            'products.*.quantity' => ['sometimes', 'required', 'numeric', 'gt:0'],
+            'total_payment' => ['required', 'numeric', 'min:0'],
+        ]);
+
+        $products = collect($validated['products'] ?? [])
+            ->filter(fn (array $delivery): bool => isset($delivery['product_id']) && isset($delivery['quantity']) && (float) $delivery['quantity'] > 0)
+            ->values();
+
+        DB::transaction(function () use ($products, $validated, $purchaseVoucher): void {
+            $lockedPurchaseVoucher = PurchaseVoucher::query()
+                ->lockForUpdate()
+                ->findOrFail($purchaseVoucher->id);
+            $lockedPurchaseVoucher->loadMissing('voucher.voucherProducts.product:id,purchase_unit_price');
+            $voucherProducts = $lockedPurchaseVoucher->voucher?->voucherProducts
+                ->where('status', true)
+                ->keyBy('product_id') ?? collect();
+
+            $products->each(function (array $delivery) use ($voucherProducts): void {
+                $voucherProduct = $voucherProducts->get($delivery['product_id']);
+                $deliveryQuantity = round((float) $delivery['quantity'], 3);
+                $voucherQuantity = round((float) $voucherProduct?->quantity ?? 0, 3);
+
+                abort_unless($voucherProduct, 422, 'This product is not available in the voucher.');
+                // abort_if($deliveryQuantity > $voucherQuantity + 0.0001, 422, 'Delivery quantity exceeds the voucher quantity.');
+            });
+
+            DeleveredProduct::query()
+                ->where('purchase_voucher_id', $lockedPurchaseVoucher->id)
+                ->delete();
+
+            $products->each(function (array $delivery) use ($lockedPurchaseVoucher, $voucherProducts): void {
+                $voucherProduct = $voucherProducts->get($delivery['product_id']);
+                $unitPrice = (float) $voucherProduct->product?->purchase_unit_price;
+
+                DeleveredProduct::create([
+                    'purchase_voucher_id' => $lockedPurchaseVoucher->id,
+                    'product_id' => $delivery['product_id'],
+                    'quantity' => $delivery['quantity'],
+                    'unit_price' => $unitPrice,
+                    'total_price' => round($unitPrice * (float) $delivery['quantity'], 2),
+                    'status' => true,
+                    'created_by' => Auth::id(),
+                ]);
+            });
+
+            $lockedPurchaseVoucher->update([
+                'status' => $products->isNotEmpty() ? 'complete' : $lockedPurchaseVoucher->status,
+                'total_payment' => round((float) $validated['total_payment'], 2),
+            ]);
+        });
+
+        return redirect()->route('purchase-vouchers.index')->with('success', 'Product delivery recorded successfully.');
     }
 
     /**
@@ -167,6 +301,7 @@ class PurchaseVoucherController extends Controller
                 'personnel_type' => $purchaseVoucher->voucher?->personnelType?->name ?? '—',
                 'voucher_category' => $purchaseVoucher->voucher?->category?->name ?? '—',
                 'for_month' => Carbon::parse($purchaseVoucher->for_month)->format('Y-m'),
+                'raising_cost' => (float) $purchaseVoucher->raising_cost,
                 'status' => $purchaseVoucher->status,
             ],
             'vouchers' => $vouchers,
@@ -186,7 +321,7 @@ class PurchaseVoucherController extends Controller
             'for_month',
         ]) === []) {
             $validated = $request->validate([
-                'status' => ['required', 'string', 'in:processed,pending,recieved,payment,complete'],
+                'status' => ['required', 'string', 'in:processed,pending,recieved,payment,out-for-delivery,delivered,complete'],
             ]);
 
             $purchaseVoucher->update($validated);
@@ -201,12 +336,31 @@ class PurchaseVoucherController extends Controller
             'phone' => ['required', 'string', 'max:20'],
             'voucher_id' => ['required', 'integer', 'exists:vouchers,id'],
             'for_month' => ['required', 'date_format:Y-m'],
-            'status' => ['required', 'string', 'in:processed,pending,recieved,payment,complete'],
+            'raising_cost' => ['required', 'numeric', 'min:0'],
+            'status' => ['required', 'string', 'in:processed,pending,recieved,payment,out-for-delivery,delivered,complete'],
         ]);
+
+        $request->validate([
+            'service_no' => [
+                Rule::unique('purchase_vouchers', 'service_no')
+                    ->ignore($purchaseVoucher->id)
+                    ->where(fn ($query) => $query->where('for_month', $validated['for_month'].'-01')),
+            ],
+        ]);
+
+        $voucher = Voucher::query()
+            ->with('voucherProducts.product:id,purchase_unit_price')
+            ->findOrFail($validated['voucher_id']);
+
+        $totalPrice = round($voucher->voucherProducts->where('status', true)->sum(
+            fn (VoucherProduct $voucherProduct): float => (float) $voucherProduct->product?->purchase_unit_price * (float) $voucherProduct->quantity,
+        ), 2);
 
         $purchaseVoucher->update([
             ...$validated,
             'for_month' => $validated['for_month'].'-01',
+            'total_price' => $totalPrice,
+            'total_payment' => max(0, $totalPrice - (float) $validated['raising_cost'] - (float) $purchaseVoucher->deliveredProducts()->where('status', true)->sum('total_price')),
         ]);
 
         return redirect()->route('purchase-vouchers.index')

@@ -7,39 +7,73 @@ import { cn } from '@/lib/utils';
 
 export default function AppearanceToggleTab({
     className = '',
+    showSystem = true,
     ...props
-}: HTMLAttributes<HTMLDivElement>) {
-    const { appearance, updateAppearance } = useAppearance();
+}: HTMLAttributes<HTMLDivElement> & { showSystem?: boolean }) {
+    const { appearance, resolvedAppearance, updateAppearance } = useAppearance();
+    const activeAppearance = showSystem ? appearance : resolvedAppearance;
 
-    const tabs: { value: Appearance; icon: LucideIcon; label: string }[] = [
-        { value: 'light', icon: Sun, label: 'Light' },
-        { value: 'dark', icon: Moon, label: 'Dark' },
-        { value: 'system', icon: Monitor, label: 'System' },
-    ];
+    // Whether the current effective mode is dark
+    const isDark = activeAppearance === 'dark';
+
+    // Toggle between light and dark. If currently "system",
+    // switch to the opposite of the resolved appearance.
+    const toggleLightDark = () => {
+        if (appearance === 'system') {
+            updateAppearance(resolvedAppearance === 'dark' ? 'light' : 'dark');
+        } else {
+            updateAppearance(appearance === 'dark' ? 'light' : 'dark');
+        }
+    };
+
+    const ToggleIcon = isDark ? Moon : Sun;
 
     return (
         <div
             className={cn(
-                'inline-flex gap-1 rounded-lg bg-neutral-100 p-1 dark:bg-neutral-800',
+                'inline-flex gap-1 rounded-full bg-neutral-100 p-1 dark:bg-neutral-800',
                 className,
             )}
+            role="group"
+            aria-label="Appearance mode"
             {...props}
         >
-            {tabs.map(({ value, icon: Icon, label }) => (
+            {/* Light/Dark toggle button */}
+            <button
+                type="button"
+                onClick={toggleLightDark}
+                aria-pressed={activeAppearance !== 'system'}
+                aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+                title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+                className={cn(
+                    'flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors',
+                    activeAppearance !== 'system'
+                        ? 'bg-white text-green-700 shadow-sm dark:bg-neutral-700 dark:text-green-300'
+                        : 'text-neutral-500 hover:bg-neutral-200/60 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-700/60 dark:hover:text-neutral-100',
+                )}
+            >
+                <ToggleIcon className="size-4" />
+                <span>{isDark ? 'Dark' : 'Light'}</span>
+            </button>
+
+            {/* System button */}
+            {showSystem && (
                 <button
-                    key={value}
-                    onClick={() => updateAppearance(value)}
+                    type="button"
+                    onClick={() => updateAppearance('system')}
+                    aria-pressed={activeAppearance === 'system'}
+                    title="Use system mode"
                     className={cn(
-                        'flex items-center rounded-md px-3.5 py-1.5 transition-colors',
-                        appearance === value
-                            ? 'bg-white shadow-xs dark:bg-neutral-700 dark:text-neutral-100'
-                            : 'text-neutral-500 hover:bg-neutral-200/60 hover:text-black dark:text-neutral-400 dark:hover:bg-neutral-700/60',
+                        'flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors',
+                        activeAppearance === 'system'
+                            ? 'bg-white text-green-700 shadow-sm dark:bg-neutral-700 dark:text-green-300'
+                            : 'text-neutral-500 hover:bg-neutral-200/60 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-700/60 dark:hover:text-neutral-100',
                     )}
                 >
-                    <Icon className="-ml-1 h-4 w-4" />
-                    <span className="ml-1.5 text-sm">{label}</span>
+                    <Monitor className="size-4" />
+                    <span>System</span>
                 </button>
-            ))}
+            )}
         </div>
     );
 }

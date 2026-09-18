@@ -3,8 +3,10 @@ import { dashboard, home, login, logout, register } from '@/routes';
 import { ShoppingBasket, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
+import AppearanceToggleTab from '@/components/appearance-tabs';
 
 type SharedProps = {
+    canAccessDashboard?: boolean;
     auth?: {
         user?: {
             name?: string;
@@ -13,7 +15,7 @@ type SharedProps = {
 };
 
 export default function Navbar() {
-    const { auth } = usePage<SharedProps>().props;
+    const { auth, canAccessDashboard } = usePage<SharedProps>().props;
     const user = auth?.user;
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -31,21 +33,43 @@ export default function Navbar() {
                 <div className="hidden md:flex items-center gap-2 text-sm">
                     {user ? (
                         <>
-                            <span className="text-gray-600 dark:text-gray-400">
+                            {/* <span className="text-gray-600 dark:text-gray-400">
                                 Welcome, {user.name}
-                            </span>
+                            </span> */}
+                            <Link
+                                href="/"
+                                className="text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-md px-4 py-2 transition-colors font-medium"
+                            >
+                                Home
+                            </Link>
+                            <Link
+                                href="/customer-vouchers"
+                                className="text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-md px-4 py-2 transition-colors font-medium"
+                            >
+                                My Vouchers
+                            </Link>
+                            <Link
+                                href="/customer-orders"
+                                className="text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-md px-4 py-2 transition-colors font-medium"
+                            >
+                                Order Monitoring
+                            </Link>
                             <Link
                                 href="/profile"
                                 className="text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-md px-4 py-2 transition-colors font-medium"
                             >
                                 Profile
                             </Link>
-                            <Link
-                                href={dashboard()}
-                                className="text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-md px-4 py-2 transition-colors font-medium"
-                            >
-                                Dashboard
-                            </Link>
+                            {canAccessDashboard && (
+                                <>
+                                    <Link
+                                        href={dashboard()}
+                                        className="text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-md px-4 py-2 transition-colors font-medium"
+                                    >
+                                        Dashboard
+                                    </Link>
+                                </>
+                            )}
                             <Link
                                 href={logout()}
                                 method="post"
@@ -71,6 +95,7 @@ export default function Navbar() {
                             </Link>
                         </>
                     )}
+                    <AppearanceToggleTab showSystem={false} />
                 </div>
 
                 {/* Mobile Menu Button */}
@@ -90,11 +115,34 @@ export default function Navbar() {
             {mobileMenuOpen && (
                 <div className="md:hidden border-t border-green-200/50 dark:border-green-900/50 bg-white dark:bg-gray-900 px-4 py-4">
                     <div className="flex flex-col gap-2 text-sm">
+                        <AppearanceToggleTab
+                            className="self-start"
+                            showSystem={false}
+                        />
                         {user ? (
                             <>
-                                <span className="text-gray-600 dark:text-gray-400 px-4 py-2">
-                                    Welcome, {user.name}
-                                </span>
+                                
+                                <Link
+                                    href="/"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className="text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-md px-4 py-2 transition-colors font-medium"
+                                >
+                                    Home
+                                </Link>
+                                <Link
+                                    href="/customer-vouchers"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className="text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-md px-4 py-2 transition-colors font-medium"
+                                >
+                                    My Vouchers
+                                </Link>
+                                <Link
+                                    href="/customer-orders"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className="text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-md px-4 py-2 transition-colors font-medium"
+                                >
+                                    Order Monitoring
+                                </Link>
                                 <Link
                                     href="/profile"
                                     onClick={() => setMobileMenuOpen(false)}
@@ -102,13 +150,17 @@ export default function Navbar() {
                                 >
                                     Profile
                                 </Link>
-                                <Link
-                                    href={dashboard()}
-                                    onClick={() => setMobileMenuOpen(false)}
-                                    className="text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-md px-4 py-2 transition-colors font-medium"
-                                >
-                                    Dashboard
-                                </Link>
+                                {canAccessDashboard && (
+                                    <>
+                                        <Link
+                                            href={dashboard()}
+                                            onClick={() => setMobileMenuOpen(false)}
+                                            className="text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-md px-4 py-2 transition-colors font-medium"
+                                        >
+                                            Dashboard
+                                        </Link>
+                                    </>
+                                )}
                                 <Link
                                     href={logout()}
                                     method="post"
