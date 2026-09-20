@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\PersonnelTypeController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
@@ -21,7 +22,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 Route::middleware(['auth', 'verified', EnsureUserCanAccessDashboard::class])->group(function () {
-    Route::inertia('dashboard', 'dashboard')->name('dashboard');
+    Route::get('/dashboard', [InvoiceController::class, 'dashboard'])->name('dashboard');
     // Product Route
     Route::get('/products', [ProductController::class, 'index'])->name('products.index')->middleware('permission::product-menu|product-view');
     Route::get('/products-list', [ProductController::class, 'show'])->name('products.show')->middleware('permission::product-menu|product-view');
@@ -66,6 +67,11 @@ Route::middleware(['auth', 'verified', EnsureUserCanAccessDashboard::class])->gr
     Route::get('/purchase-vouchers/{purchaseVoucher}/edit', [PurchaseVoucherController::class, 'edit'])->name('purchase-vouchers.edit')->middleware('permission::product-menu|product-edit');
     Route::put('/purchase-vouchers/{purchaseVoucher}', [PurchaseVoucherController::class, 'update'])->name('purchase-vouchers.update')->middleware('permission::product-menu|product-edit');
     Route::delete('/purchase-vouchers/{purchaseVoucher}', [PurchaseVoucherController::class, 'destroy'])->name('purchase-vouchers.destroy')->middleware('permission::product-menu|product-delete');
+
+    // sales route
+    Route::get('/sales', [InvoiceController::class, 'index'])->name('sales.index')->middleware('permission::product-menu|product-view');
+    Route::post('/sales', [InvoiceController::class, 'store'])->name('sales.store')->middleware('permission::product-menu|product-create');
+    Route::get('/sales/{invoice}', [InvoiceController::class, 'show'])->name('sales.show')->middleware('permission::product-menu|product-view');
 
 });
 

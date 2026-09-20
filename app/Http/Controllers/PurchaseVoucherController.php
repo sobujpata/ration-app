@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\DeleveredProduct;
+use App\Models\DueProduct;
 use App\Models\PurchaseVoucher;
 use App\Models\Voucher;
 use App\Models\VoucherProduct;
@@ -135,23 +136,34 @@ class PurchaseVoucherController extends Controller
             ->with([
                 'voucher.category:id,name',
                 'voucher.voucherProducts.product:id,purchase_unit_price',
+                'dueProducts.product:id,purchase_unit_price',
                 'user:id,name',
             ])
             ->orderBy('id', 'desc')
             ->get()
-            ->map(fn (PurchaseVoucher $purchaseVoucher): array => [
-                'id' => $purchaseVoucher->id,
-                'service_no' => $purchaseVoucher->service_no,
-                'name' => $purchaseVoucher->name,
-                'phone' => $purchaseVoucher->phone,
-                'voucher_category' => $purchaseVoucher->voucher?->category?->name ?? '—',
-                'total_price' => (float) $purchaseVoucher->total_price,
-                'raising_cost' => (float) $purchaseVoucher->raising_cost,
-                'total_payment' => (float) $purchaseVoucher->total_payment,
-                'for_month' => Carbon::parse($purchaseVoucher->for_month)->format('M y'),
-                'status' => $purchaseVoucher->status,
-                'created_by' => $purchaseVoucher->user?->name ?? '—',
-            ]);
+            ->map(function (PurchaseVoucher $purchaseVoucher): array {
+                $dueProductsPrice = $purchaseVoucher->if_due_products
+                    ? $purchaseVoucher->dueProducts->sum(
+                        fn (DueProduct $dueProduct): float => (float) $dueProduct->quantity * (float) ($dueProduct->product?->purchase_unit_price ?? 0),
+                    )
+                    : 0;
+
+                return [
+                    'id' => $purchaseVoucher->id,
+                    'service_no' => $purchaseVoucher->service_no,
+                    'name' => $purchaseVoucher->name,
+                    'phone' => $purchaseVoucher->phone,
+                    'voucher_category' => $purchaseVoucher->voucher?->category?->name ?? '—',
+                    'if_due_products' => (bool) $purchaseVoucher->if_due_products,
+                    'due_products_price' => round($dueProductsPrice, 2),
+                    'total_price' => max(0, round((float) $purchaseVoucher->total_price - $dueProductsPrice, 2)),
+                    'raising_cost' => (float) $purchaseVoucher->raising_cost,
+                    'total_payment' => max(0, round((float) $purchaseVoucher->total_payment - $dueProductsPrice, 2)),
+                    'for_month' => Carbon::parse($purchaseVoucher->for_month)->format('M y'),
+                    'status' => $purchaseVoucher->status,
+                    'created_by' => $purchaseVoucher->user?->name ?? '—',
+                ];
+            });
 
         return response()->json($data);
     }
@@ -166,8 +178,12 @@ class PurchaseVoucherController extends Controller
             'voucher.category:id,name',
             'voucher.voucherProducts.product:id,name,unit,purchase_unit_price',
             'user:id,name',
+            'dueProducts.product:id,purchase_unit_price',
             'deliveredProducts.product:id,name,unit',
         ]);
+
+        $dueProductQuantities = $purchaseVoucher->dueProducts
+            ->keyBy('product_id');
 
         $voucherProducts = $purchaseVoucher->voucher?->voucherProducts
             ->map(fn (VoucherProduct $voucherProduct): array => [
@@ -175,9 +191,13 @@ class PurchaseVoucherController extends Controller
                 'product_id' => $voucherProduct->product_id,
                 'name' => $voucherProduct->product?->name ?? '—',
                 'unit' => $voucherProduct->product?->unit ?? '—',
-                'quantity' => (float) $voucherProduct->quantity,
+                'quantity' => max(0, (float) $voucherProduct->quantity - (float) ($dueProductQuantities->get($voucherProduct->product_id)?->quantity ?? 0)),
                 'purchase_unit_price' => (float) ($voucherProduct->product?->purchase_unit_price ?? 0),
-                'line_total' => round((float) ($voucherProduct->product?->purchase_unit_price ?? 0) * (float) $voucherProduct->quantity, 2),
+                'line_total' => round(
+                    (float) ($voucherProduct->product?->purchase_unit_price ?? 0)
+                    * max(0, (float) $voucherProduct->quantity - (float) ($dueProductQuantities->get($voucherProduct->product_id)?->quantity ?? 0)),
+                    2,
+                ),
                 'status' => (bool) $voucherProduct->status,
             ])
             ->values() ?? collect();
@@ -198,9 +218,14 @@ class PurchaseVoucherController extends Controller
                     'products' => $voucherProducts,
                     'total_price' => $voucherProducts->where('status', true)->sum('line_total'),
                 ],
-                'total_price' => (float) $purchaseVoucher->total_price,
+                'total_price' => (float) $voucherProducts->where('status', true)->sum('line_total'),
                 'raising_cost' => (float) $purchaseVoucher->raising_cost,
-                'total_payment' => (float) $purchaseVoucher->total_payment,
+                'total_payment' => max(
+                    0,
+                    (float) $voucherProducts->where('status', true)->sum('line_total')
+                    - (float) $purchaseVoucher->raising_cost
+                    - (float) $purchaseVoucher->deliveredProducts->sum('total_price'),
+                ),
                 'delivered_products' => $purchaseVoucher->deliveredProducts->map(fn (DeleveredProduct $deliveredProduct): array => [
                     'id' => $deliveredProduct->id,
                     'product_id' => $deliveredProduct->product_id,
@@ -234,18 +259,26 @@ class PurchaseVoucherController extends Controller
             $lockedPurchaseVoucher = PurchaseVoucher::query()
                 ->lockForUpdate()
                 ->findOrFail($purchaseVoucher->id);
-            $lockedPurchaseVoucher->loadMissing('voucher.voucherProducts.product:id,purchase_unit_price');
+            $lockedPurchaseVoucher->loadMissing([
+                'voucher.voucherProducts.product:id,purchase_unit_price',
+                'dueProducts',
+            ]);
             $voucherProducts = $lockedPurchaseVoucher->voucher?->voucherProducts
                 ->where('status', true)
                 ->keyBy('product_id') ?? collect();
+            $dueProductQuantities = $lockedPurchaseVoucher->dueProducts()
+                ->pluck('quantity', 'product_id');
 
-            $products->each(function (array $delivery) use ($voucherProducts): void {
+            $products->each(function (array $delivery) use ($dueProductQuantities, $voucherProducts): void {
                 $voucherProduct = $voucherProducts->get($delivery['product_id']);
                 $deliveryQuantity = round((float) $delivery['quantity'], 3);
-                $voucherQuantity = round((float) $voucherProduct?->quantity ?? 0, 3);
+                $voucherQuantity = round(
+                    (float) $voucherProduct?->quantity - (float) ($dueProductQuantities->get($delivery['product_id']) ?? 0),
+                    3,
+                );
 
                 abort_unless($voucherProduct, 422, 'This product is not available in the voucher.');
-                // abort_if($deliveryQuantity > $voucherQuantity + 0.0001, 422, 'Delivery quantity exceeds the voucher quantity.');
+                abort_if($deliveryQuantity > $voucherQuantity + 0.0001, 422, 'Delivery quantity exceeds the voucher quantity.');
             });
 
             DeleveredProduct::query()
@@ -281,7 +314,12 @@ class PurchaseVoucherController extends Controller
      */
     public function edit(PurchaseVoucher $purchaseVoucher)
     {
-        $purchaseVoucher->load('voucher.personnelType:id,name', 'voucher.category:id,name');
+        $purchaseVoucher->load([
+            'voucher.personnelType:id,name',
+            'voucher.category:id,name',
+            'voucher.voucherProducts.product:id,name,unit',
+            'dueProducts:purchase_voucher_id,product_id',
+        ]);
         $vouchers = Voucher::query()
             ->with('personnelType:id,name', 'category:id,name')
             ->get(['id', 'personnel_type_id', 'category_id'])
@@ -303,8 +341,20 @@ class PurchaseVoucherController extends Controller
                 'for_month' => Carbon::parse($purchaseVoucher->for_month)->format('Y-m'),
                 'raising_cost' => (float) $purchaseVoucher->raising_cost,
                 'status' => $purchaseVoucher->status,
+                'if_due_products' => (bool) $purchaseVoucher->if_due_products,
+                'due_product_ids' => $purchaseVoucher->dueProducts->pluck('product_id')->values(),
             ],
             'vouchers' => $vouchers,
+            'voucherProducts' => $purchaseVoucher->voucher?->voucherProducts
+                ->where('status', true)
+                ->map(fn (VoucherProduct $voucherProduct): array => [
+                    'id' => $voucherProduct->id,
+                    'product_id' => $voucherProduct->product_id,
+                    'name' => $voucherProduct->product?->name ?? '—',
+                    'unit' => $voucherProduct->product?->unit ?? '—',
+                    'quantity' => (float) $voucherProduct->quantity,
+                ])
+                ->values() ?? collect(),
         ]);
     }
 
@@ -338,6 +388,9 @@ class PurchaseVoucherController extends Controller
             'for_month' => ['required', 'date_format:Y-m'],
             'raising_cost' => ['required', 'numeric', 'min:0'],
             'status' => ['required', 'string', 'in:processed,pending,recieved,payment,out-for-delivery,delivered,complete'],
+            'if_due_products' => ['nullable', 'boolean'],
+            'due_product_ids' => ['nullable', 'array'],
+            'due_product_ids.*' => ['integer', 'distinct', 'exists:products,id'],
         ]);
 
         $request->validate([
@@ -356,12 +409,38 @@ class PurchaseVoucherController extends Controller
             fn (VoucherProduct $voucherProduct): float => (float) $voucherProduct->product?->purchase_unit_price * (float) $voucherProduct->quantity,
         ), 2);
 
-        $purchaseVoucher->update([
-            ...$validated,
-            'for_month' => $validated['for_month'].'-01',
-            'total_price' => $totalPrice,
-            'total_payment' => max(0, $totalPrice - (float) $validated['raising_cost'] - (float) $purchaseVoucher->deliveredProducts()->where('status', true)->sum('total_price')),
-        ]);
+        $ifDueProducts = $request->boolean('if_due_products');
+        $dueProductIds = collect($validated['due_product_ids'] ?? [])->map(fn (int|string $productId): int => (int) $productId)->values();
+        $voucherProductQuantities = $voucher->voucherProducts
+            ->where('status', true)
+            ->keyBy('product_id');
+
+        abort_unless(
+            $ifDueProducts === false || $dueProductIds->every(fn (int $productId): bool => $voucherProductQuantities->has($productId)),
+            422,
+            'Selected due products must belong to the selected voucher.',
+        );
+
+        DB::transaction(function () use ($dueProductIds, $ifDueProducts, $purchaseVoucher, $validated, $totalPrice, $voucherProductQuantities): void {
+            $purchaseVoucher->update([
+                ...$validated,
+                'for_month' => $validated['for_month'].'-01',
+                'if_due_products' => $ifDueProducts,
+                'total_price' => $totalPrice,
+                'total_payment' => max(0, $totalPrice - (float) $validated['raising_cost'] - (float) $purchaseVoucher->deliveredProducts()->where('status', true)->sum('total_price')),
+            ]);
+
+            $purchaseVoucher->dueProducts()->delete();
+
+            if ($ifDueProducts) {
+                $purchaseVoucher->dueProducts()->createMany(
+                    $dueProductIds->map(fn (int $productId): array => [
+                        'product_id' => $productId,
+                        'quantity' => $voucherProductQuantities->get($productId)->quantity,
+                    ])->all(),
+                );
+            }
+        });
 
         return redirect()->route('purchase-vouchers.index')
             ->with('success', 'Purchase voucher updated successfully.');

@@ -16,6 +16,7 @@ class PurchaseVoucher extends Model
         'raising_cost',
         'total_payment',
         'status',
+        'if_due_products',
         'created_by',
     ];
 
@@ -24,6 +25,7 @@ class PurchaseVoucher extends Model
         'total_price' => 'decimal:2',
         'raising_cost' => 'decimal:2',
         'total_payment' => 'decimal:2',
+        'if_due_products' => 'boolean',
     ];
 
     public function voucher()
@@ -39,5 +41,10 @@ class PurchaseVoucher extends Model
     public function deliveredProducts()
     {
         return $this->hasMany(DeleveredProduct::class, 'purchase_voucher_id');
+    }
+
+    public function dueProducts()
+    {
+        return $this->hasMany(DueProduct::class, 'purchase_voucher_id');
     }
 }

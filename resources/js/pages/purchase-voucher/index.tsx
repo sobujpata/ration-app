@@ -11,6 +11,8 @@ type FatchData = {
     name: string;
     phone: string;
     voucher_category: string;
+    if_due_products: boolean;
+    due_products_price: number;
     total_price: number;
     raising_cost: number;
     total_payment: number;
@@ -58,6 +60,8 @@ export default function Index() {
             datas.name,
             datas.phone,
             datas.voucher_category,
+            datas.if_due_products,
+            datas.due_products_price,
             datas.total_price,
             datas.raising_cost,
             datas.total_payment,
@@ -203,6 +207,7 @@ export default function Index() {
                                     <th className="dark:border-sky-950 border-b border-slate-200 px-4 py-3 font-semibold">Name</th>
                                     <th className="dark:border-sky-950 border-b border-slate-200 px-4 py-3 font-semibold">Phone</th>
                                     <th className="dark:border-sky-950 border-b border-slate-200 px-4 py-3 font-semibold">Voucher Category</th>
+                                    <th className="dark:border-sky-950 border-b border-slate-200 px-4 py-3 font-semibold">If Due</th>
                                     <th className="dark:border-sky-950 border-b border-slate-200 px-4 py-3 font-semibold">Total Price</th>
                                     <th className="dark:border-sky-950 border-b border-slate-200 px-4 py-3 font-semibold">Month</th>
                                     <th className="dark:border-sky-950 border-b border-slate-200 px-4 py-3 font-semibold">Status</th>
@@ -214,13 +219,13 @@ export default function Index() {
                             <tbody>
                                 {loading ? (
                                     <tr>
-                                        <td colSpan={11} className="px-4 py-10 text-center text-sm text-slate-500">
+                                        <td colSpan={12} className="px-4 py-10 text-center text-sm text-slate-500">
                                             Loading ...
                                         </td>
                                     </tr>
                                 ) : filteredFatchData.length === 0 ? (
                                     <tr>
-                                        <td colSpan={11} className="px-4 py-10 text-center text-sm text-slate-500">
+                                        <td colSpan={12} className="px-4 py-10 text-center text-sm text-slate-500">
                                             {searchTerm ? 'No match your search.' : 'No found.'}
                                         </td>
                                     </tr>
@@ -241,6 +246,11 @@ export default function Index() {
                                             </td>
                                             <td className="border-b dark:border-sky-950 border-slate-200 px-4 py-3 font-medium dark:text-slate-100 text-slate-900">
                                                 {data.voucher_category}
+                                            </td>
+                                            <td className="border-b dark:border-sky-950 border-slate-200 px-4 py-3 font-medium dark:text-slate-100 text-slate-900">
+                                                <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${data.if_due_products ? 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'}`}>
+                                                    {data.if_due_products ? `Yes (${Number(data.due_products_price).toFixed(2)})` : 'No'}
+                                                </span>
                                             </td>
                                             <td className="border-b dark:border-sky-950 border-slate-200 px-4 py-3 font-medium dark:text-slate-100 text-slate-900">
                                                 {Number(data.total_price).toFixed(2)}

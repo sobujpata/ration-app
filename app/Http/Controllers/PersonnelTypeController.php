@@ -21,7 +21,7 @@ class PersonnelTypeController extends Controller
      */
     public function create()
     {
-        return Inertia::render('personnel-types/index');
+        return Inertia::render('personnel-types/create');
     }
 
     /**
@@ -30,18 +30,19 @@ class PersonnelTypeController extends Controller
     public function store(Request $request)
     {
         $validation = $request->validate([
-            'name' => 'required|string',
-            'description' => 'required|string',
-            'status' => 'required|string',
+            'name' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'status' => ['required', 'in:1,0,true,false,active,inactive'],
         ]);
 
         PersonnelType::create([
             'name' => $validation['name'],
-            'description' => $validation['description'],
+            'description' => $validation['description'] ?? '',
             'status' => $validation['status'],
         ]);
 
-        return Inertia::render('personnel-types/index');
+        return redirect()->route('personnel-types.index')
+            ->with('success', 'Personnel type created successfully.');
     }
 
     /**
@@ -61,7 +62,7 @@ class PersonnelTypeController extends Controller
     {
         $data = PersonnelType::findOrFail($id);
 
-        return Inertia::render('ration-voucher-category/edit', compact('data'));
+        return Inertia::render('personnel-types/edit', compact('data'));
     }
 
     /**
@@ -70,18 +71,20 @@ class PersonnelTypeController extends Controller
     public function update(Request $request, int $id)
     {
         $validation = $request->validate([
-            'name' => 'required|string',
-            'description' => 'nullable|string',
-            'status' => 'required|string',
+            'name' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'status' => ['required', 'in:1,0,true,false,active,inactive'],
         ]);
+
         $personnelType = PersonnelType::findOrFail($id);
         $personnelType->update([
             'name' => $validation['name'],
-            'description' => $validation['description'],
+            'description' => $validation['description'] ?? '',
             'status' => $validation['status'],
         ]);
 
-        return Inertia::render('personnel-types/index');
+        return redirect()->route('personnel-types.index')
+            ->with('success', 'Personnel type updated successfully.');
     }
 
     /**

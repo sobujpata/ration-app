@@ -1,4 +1,5 @@
 import { Form, Head, Link } from '@inertiajs/react';
+import { useState } from 'react';
 import { ArrowLeft, Save } from 'lucide-react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -16,8 +17,11 @@ type PurchaseVoucher = {
     for_month: string;
     raising_cost: number;
     status: string;
+    if_due_products: boolean;
+    due_product_ids: number[];
 };
 type VoucherOption = { id: number; personnel_type: string; category: string };
+type VoucherProduct = { id: number; product_id: number; name: string; unit: string; quantity: number };
 
 const statusOptions = [
     { value: 'pending', label: 'Pending' },
@@ -29,7 +33,9 @@ const statusOptions = [
     { value: 'complete', label: 'Complete' },
 ];
 
-export default function Edit({ purchaseVoucher, vouchers }: { purchaseVoucher: PurchaseVoucher; vouchers: VoucherOption[] }) {
+export default function Edit({ purchaseVoucher, vouchers, voucherProducts }: { purchaseVoucher: PurchaseVoucher; vouchers: VoucherOption[]; voucherProducts: VoucherProduct[] }) {
+    const [ifDueProducts, setIfDueProducts] = useState(purchaseVoucher.if_due_products);
+
     return (
         <>
             <Head title={`Edit purchase voucher #${purchaseVoucher.id}`} />
@@ -61,6 +67,41 @@ export default function Edit({ purchaseVoucher, vouchers }: { purchaseVoucher: P
                                     </select>
                                     <InputError message={errors.voucher_id} /></div>
                                     <div className="space-y-2"><Label htmlFor="status">Status</Label><select id="status" name="status" defaultValue={purchaseVoucher.status} required className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 dark:border-slate-800 dark:bg-black dark:text-slate-100">{statusOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select><InputError message={errors.status} /></div>
+                                </div>
+                                <div className="space-y-4 rounded-xl border border-slate-200 p-4 dark:border-slate-800">
+                                    <label className="flex items-center gap-3 text-sm font-medium text-slate-900 dark:text-slate-100">
+                                        <input
+                                            type="checkbox"
+                                            name="if_due_products"
+                                            value="1"
+                                            defaultChecked={purchaseVoucher.if_due_products}
+                                            onChange={(event) => setIfDueProducts(event.target.checked)}
+                                            className="size-4 rounded border-slate-300 text-green-600 focus:ring-green-500"
+                                        />
+                                        Mark products as due
+                                    </label>
+                                    {ifDueProducts && (
+                                        <div className="space-y-3">
+                                            <p className="text-sm text-slate-500 dark:text-slate-300">Select the products that are due for this purchase voucher.</p>
+                                            <div className="grid gap-3 md:grid-cols-2">
+                                                {voucherProducts.map((product) => (
+                                                    <label key={product.id} className="flex items-center gap-3 rounded-lg border border-slate-200 p-3 text-sm dark:border-slate-800">
+                                                        <input
+                                                            type="checkbox"
+                                                            name="due_product_ids[]"
+                                                            value={product.product_id}
+                                                            defaultChecked={purchaseVoucher.due_product_ids.includes(product.product_id)}
+                                                            className="size-4 rounded border-slate-300 text-green-600 focus:ring-green-500"
+                                                        />
+                                                        <span className="text-slate-900 dark:text-slate-100">{product.name}</span>
+                                                        <span className="text-slate-500 dark:text-slate-300">({product.quantity} {product.unit})</span>
+                                                    </label>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                    <InputError message={errors.if_due_products} />
+                                    <InputError message={errors.due_product_ids} />
                                 </div>
                                 <div className="flex justify-end"><Button type="submit" disabled={processing} className="min-w-40 bg-green-600 text-white hover:bg-green-700"><Save className="size-4" />{processing ? 'Saving...' : 'Update purchase voucher'}</Button></div>
                             </>

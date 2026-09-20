@@ -1,96 +1,186 @@
 import { Head, Link } from '@inertiajs/react';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { 
-    ShoppingBasket, 
-    Truck, 
-    Leaf, 
-    Clock, 
-    ShieldCheck,
-    Star,
+import {
+    ArrowRight,
+    BadgeCheck,
+    BarChart3,
+    Box,
     ChevronRight,
-    Apple,
-    Carrot,
-    Milk,
-    Wheat,
-    Egg,
-    Fish
+    Clock3,
+    PackageCheck,
+    ReceiptText,
+    ShoppingCart,
+    Store,
+    TrendingUp,
+    Truck,
 } from 'lucide-react';
+
+const featureCards = [
+    {
+        icon: Truck,
+        title: 'Fast delivery',
+        description: 'Daily dispatch and reliable doorstep supply for your ration stock.',
+    },
+    {
+        icon: PackageCheck,
+        title: 'Quality assurance',
+        description: 'Carefully selected products with proper packaging and freshness checks.',
+    },
+    {
+        icon: BarChart3,
+        title: 'Daily sales insights',
+        description: 'Track purchases, sales, and voucher activity with clear reporting.',
+    },
+    {
+        icon: Store,
+        title: 'Retail + wholesale',
+        description: 'Serve individual customers and larger purchase voucher customers together.',
+    },
+];
+
+const stats = [
+    { label: 'Products in stock', value: '2.4K+' },
+    { label: 'Daily transactions', value: '468' },
+    { label: 'Voucher customers', value: '1,250' },
+    { label: 'Happy buyers', value: '92%' },
+];
+
+const productGroups = [
+    { name: 'Rice', count: '220 bags', color: 'bg-amber-100 text-amber-700' },
+    { name: 'Oil', count: '190 packs', color: 'bg-emerald-100 text-emerald-700' },
+    { name: 'Sugar', count: '160 sacks', color: 'bg-orange-100 text-orange-700' },
+    { name: 'Pulses', count: '140 packs', color: 'bg-violet-100 text-violet-700' },
+    { name: 'Salt', count: '180 packets', color: 'bg-sky-100 text-sky-700' },
+    { name: 'Flour', count: '210 sacks', color: 'bg-rose-100 text-rose-700' },
+];
+
+const steps = [
+    {
+        icon: ShoppingCart,
+        title: 'Create purchase orders',
+        detail: 'Add ration items, quantities, and supplier cost quickly from one place.',
+    },
+    {
+        icon: ReceiptText,
+        title: 'Track voucher sales',
+        detail: 'Monitor delivery, payment, and due amounts for every ration voucher.',
+    },
+    {
+        icon: TrendingUp,
+        title: 'Manage sales growth',
+        detail: 'View business movement with live totals for today’s purchases and sales.',
+    },
+];
 
 export default function Welcome() {
     return (
         <>
-            <Head title="FreshMart - Your Local Grocery Store" />
-            
-            {/* Hero Section */}
-            <section className="relative bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-green-950/20 dark:via-emerald-950/20 dark:to-teal-950/20">
-                <div className="container mx-auto px-4 py-20 lg:py-32">
-                    <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <Head title="Ration Shop | Purchase & Sales" />
+
+            <section className="relative overflow-hidden bg-gradient-to-br from-emerald-50 via-white to-amber-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.12),_transparent_35%),radial-gradient(circle_at_bottom_right,_rgba(245,158,11,0.12),_transparent_30%)]" />
+                <div className="relative mx-auto max-w-7xl px-4 py-20 lg:px-6 lg:py-28">
+                    <div className="grid items-center gap-12 lg:grid-cols-[1.1fr_0.9fr]">
                         <div className="space-y-8">
-                            <Badge variant="outline" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 border-green-300">
-                                🎉 Free Delivery on First Order
+                            <Badge variant="outline" className="border-emerald-200 bg-emerald-100 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200">
+                                Trusted ration supply partner
                             </Badge>
-                            <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 dark:text-gray-100 leading-tight">
-                                Fresh Groceries
-                                <span className="text-green-600 dark:text-green-400"> Delivered</span> to Your Door
-                            </h1>
-                            <p className="text-xl text-gray-600 dark:text-gray-300 leading-relaxed">
-                                Quality produce, dairy, meats, and more from local farmers. Order online and get same-day delivery.
-                            </p>
-                            <div className="flex flex-col sm:flex-row gap-4">
+
+                            <div className="space-y-5">
+                                <h1 className="max-w-xl text-4xl font-black leading-tight text-slate-900 dark:text-white md:text-5xl lg:text-6xl">
+                                    Smart ration purchase and sales for your local shop.
+                                </h1>
+                                <p className="max-w-xl text-lg leading-8 text-slate-600 dark:text-slate-300">
+                                    Manage inventory, customer vouchers, daily sales, and product movement from one efficient storefront built for ration businesses.
+                                </p>
+                            </div>
+
+                            <div className="flex flex-col gap-4 sm:flex-row">
                                 <Link href="/register">
-                                    <Button size="lg" className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white">
-                                        Start Shopping
-                                        <ChevronRight className="ml-2 h-5 w-5" />
+                                    <Button size="lg" className="bg-emerald-600 text-white hover:bg-emerald-700">
+                                        Start buying
+                                        <ChevronRight className="ml-2 h-4 w-4" />
                                     </Button>
                                 </Link>
                                 <Link href="/login">
-                                    <Button size="lg" variant="outline" className="w-full sm:w-auto">
-                                        Sign In
+                                    <Button size="lg" variant="outline" className="border-slate-300 text-slate-800 dark:border-slate-700 dark:text-slate-100">
+                                        Seller login
                                     </Button>
                                 </Link>
                             </div>
-                            <div className="flex items-center gap-8 pt-4">
+
+                            <div className="flex flex-wrap items-center gap-6 pt-2 text-sm text-slate-600 dark:text-slate-300">
                                 <div className="flex items-center gap-2">
-                                    <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />
-                                    <span className="font-semibold text-gray-900 dark:text-gray-100">4.9</span>
-                                    <span className="text-gray-600 dark:text-gray-400">(2.5k reviews)</span>
+                                    <BadgeCheck className="h-4 w-4 text-emerald-600" />
+                                    Secure billing
                                 </div>
-                                <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                                    <Truck className="h-5 w-5" />
-                                    <span>Free delivery over $50</span>
+                                <div className="flex items-center gap-2">
+                                    <Clock3 className="h-4 w-4 text-amber-500" />
+                                    Daily updates
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <TrendingUp className="h-4 w-4 text-sky-600" />
+                                    Sales tracking
                                 </div>
                             </div>
                         </div>
+
                         <div className="relative">
-                            <div className="absolute inset-0 bg-gradient-to-tr from-green-400 to-emerald-500 rounded-3xl transform rotate-3 opacity-20"></div>
-                            <div className="relative bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-2xl">
-                                <div className="grid grid-cols-3 gap-4">
-                                    <div className="bg-green-100 dark:bg-green-900/30 rounded-2xl p-4 flex flex-col items-center justify-center">
-                                        <Apple className="h-12 w-12 text-red-500 mb-2" />
-                                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Fruits</span>
+                            <div className="absolute -inset-6 rounded-[2rem] bg-gradient-to-br from-emerald-200/60 via-amber-100/40 to-sky-200/50 blur-2xl" />
+                            <div className="relative rounded-[2rem] border border-white/60 bg-white/80 p-5 shadow-[0_25px_80px_rgba(15,23,42,0.14)] backdrop-blur dark:border-slate-800 dark:bg-slate-900/80">
+                                <div className="rounded-[1.5rem] bg-gradient-to-br from-emerald-600 via-emerald-500 to-amber-400 p-5 text-white">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <p className="text-sm text-emerald-100">Today&apos;s overview</p>
+                                            <h2 className="mt-2 text-3xl font-bold">৳ 1,28,450</h2>
+                                        </div>
+                                        <div className="rounded-2xl bg-white/15 p-3">
+                                            <BarChart3 className="h-7 w-7" />
+                                        </div>
                                     </div>
-                                    <div className="bg-orange-100 dark:bg-orange-900/30 rounded-2xl p-4 flex flex-col items-center justify-center">
-                                        <Carrot className="h-12 w-12 text-orange-500 mb-2" />
-                                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Vegetables</span>
+
+                                    <div className="mt-6 grid grid-cols-2 gap-3 text-sm">
+                                        <div className="rounded-2xl bg-white/10 p-3">
+                                            <p className="text-emerald-100">Purchases</p>
+                                            <p className="mt-1 text-xl font-semibold">৳ 48,200</p>
+                                        </div>
+                                        <div className="rounded-2xl bg-white/10 p-3">
+                                            <p className="text-emerald-100">Sales</p>
+                                            <p className="mt-1 text-xl font-semibold">৳ 80,250</p>
+                                        </div>
                                     </div>
-                                    <div className="bg-blue-100 dark:bg-blue-900/30 rounded-2xl p-4 flex flex-col items-center justify-center">
-                                        <Milk className="h-12 w-12 text-blue-500 mb-2" />
-                                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Dairy</span>
+                                </div>
+
+                                <div className="mt-5 space-y-4">
+                                    <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800/80">
+                                        <div className="flex items-center gap-3">
+                                            <div className="rounded-xl bg-emerald-100 p-2 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200">
+                                                <Box className="h-4 w-4" />
+                                            </div>
+                                            <div>
+                                                <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Stock</p>
+                                                <p className="font-semibold text-slate-900 dark:text-white">1,440 items</p>
+                                            </div>
+                                        </div>
+                                        <span className="rounded-full bg-emerald-100 px-2 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200">
+                                            +12.4%
+                                        </span>
                                     </div>
-                                    <div className="bg-amber-100 dark:bg-amber-900/30 rounded-2xl p-4 flex flex-col items-center justify-center">
-                                        <Wheat className="h-12 w-12 text-amber-600 mb-2" />
-                                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Bakery</span>
-                                    </div>
-                                    <div className="bg-yellow-100 dark:bg-yellow-900/30 rounded-2xl p-4 flex flex-col items-center justify-center">
-                                        <Egg className="h-12 w-12 text-yellow-600 mb-2" />
-                                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Eggs</span>
-                                    </div>
-                                    <div className="bg-cyan-100 dark:bg-cyan-900/30 rounded-2xl p-4 flex flex-col items-center justify-center">
-                                        <Fish className="h-12 w-12 text-cyan-600 mb-2" />
-                                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Seafood</span>
+
+                                    <div className="grid grid-cols-2 gap-3">
+                                        {['Rice', 'Oil', 'Sugar', 'Salt'].map((item, index) => (
+                                            <div key={item} className="rounded-2xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800/80">
+                                                <div className="mb-2 h-2.5 w-full rounded-full bg-slate-200 dark:bg-slate-700">
+                                                    <div
+                                                        className="h-2.5 rounded-full bg-gradient-to-r from-emerald-500 to-amber-400"
+                                                        style={{ width: `${68 + index * 8}%` }}
+                                                    />
+                                                </div>
+                                                <p className="text-sm font-medium text-slate-700 dark:text-slate-200">{item}</p>
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
                             </div>
@@ -99,345 +189,134 @@ export default function Welcome() {
                 </div>
             </section>
 
-            {/* Features Section */}
-            <section className="py-20 bg-white dark:bg-gray-900">
-                <div className="container mx-auto px-4">
-                    <div className="grid md:grid-cols-4 gap-8">
-                        <Card className="border-2 border-green-100 dark:border-green-900/30 hover:border-green-300 dark:hover:border-green-700 transition-colors">
-                            <CardHeader>
-                                <Truck className="h-12 w-12 text-green-600 dark:text-green-400 mb-4" />
-                                <CardTitle>Free Delivery</CardTitle>
-                                <CardDescription>Free same-day delivery on orders over $50</CardDescription>
-                            </CardHeader>
-                        </Card>
-                        <Card className="border-2 border-green-100 dark:border-green-900/30 hover:border-green-300 dark:hover:border-green-700 transition-colors">
-                            <CardHeader>
-                                <Leaf className="h-12 w-12 text-green-600 dark:text-green-400 mb-4" />
-                                <CardTitle>Fresh & Organic</CardTitle>
-                                <CardDescription>100% fresh produce from local farmers</CardDescription>
-                            </CardHeader>
-                        </Card>
-                        <Card className="border-2 border-green-100 dark:border-green-900/30 hover:border-green-300 dark:hover:border-green-700 transition-colors">
-                            <CardHeader>
-                                <Clock className="h-12 w-12 text-green-600 dark:text-green-400 mb-4" />
-                                <CardTitle>Fast Service</CardTitle>
-                                <CardDescription>Order by 2 PM, get it by 6 PM</CardDescription>
-                            </CardHeader>
-                        </Card>
-                        <Card className="border-2 border-green-100 dark:border-green-900/30 hover:border-green-300 dark:hover:border-green-700 transition-colors">
-                            <CardHeader>
-                                <ShieldCheck className="h-12 w-12 text-green-600 dark:text-green-400 mb-4" />
-                                <CardTitle>Quality Guarantee</CardTitle>
-                                <CardDescription>Not satisfied? Get a full refund</CardDescription>
-                            </CardHeader>
-                        </Card>
-                    </div>
-                </div>
-            </section>
-
-            {/* Categories Section */}
-            <section className="py-20 bg-gray-50 dark:bg-gray-800">
-                <div className="container mx-auto px-4">
-                    <div className="text-center mb-12">
-                        <h2 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">Shop by Category</h2>
-                        <p className="text-xl text-gray-600 dark:text-gray-400">Browse our wide selection of fresh products</p>
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-                        {[
-                            { icon: Apple, name: 'Fruits', count: '150+', color: 'bg-red-100 dark:bg-red-900/30', iconColor: 'text-red-500' },
-                            { icon: Carrot, name: 'Vegetables', count: '200+', color: 'bg-orange-100 dark:bg-orange-900/30', iconColor: 'text-orange-500' },
-                            { icon: Milk, name: 'Dairy', count: '80+', color: 'bg-blue-100 dark:bg-blue-900/30', iconColor: 'text-blue-500' },
-                            { icon: Wheat, name: 'Bakery', count: '50+', color: 'bg-amber-100 dark:bg-amber-900/30', iconColor: 'text-amber-600' },
-                            { icon: Egg, name: 'Eggs', count: '30+', color: 'bg-yellow-100 dark:bg-yellow-900/30', iconColor: 'text-yellow-600' },
-                            { icon: Fish, name: 'Seafood', count: '60+', color: 'bg-cyan-100 dark:bg-cyan-900/30', iconColor: 'text-cyan-600' },
-                        ].map((category, index) => (
-                            <Link key={index} href="/shop">
-                                <Card className="hover:shadow-lg transition-shadow cursor-pointer border-2 border-transparent hover:border-green-300 dark:hover:border-green-700">
-                                    <CardContent className="p-6 text-center">
-                                        <div className={`${category.color} rounded-full w-20 h-20 mx-auto flex items-center justify-center mb-4`}>
-                                            <category.icon className={`h-10 w-10 ${category.iconColor}`} />
-                                        </div>
-                                        <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">{category.name}</h3>
-                                        <p className="text-sm text-gray-600 dark:text-gray-400">{category.count} items</p>
-                                    </CardContent>
-                                </Card>
-                            </Link>
+            <section className="bg-white py-20 dark:bg-slate-900">
+                <div className="mx-auto max-w-7xl px-4 lg:px-6">
+                    <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+                        {stats.map((stat) => (
+                            <div key={stat.label} className="rounded-2xl border border-slate-200 bg-slate-50 p-6 text-center shadow-sm dark:border-slate-700 dark:bg-slate-800/80">
+                                <p className="text-3xl font-black text-slate-900 dark:text-white">{stat.value}</p>
+                                <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{stat.label}</p>
+                            </div>
                         ))}
                     </div>
                 </div>
             </section>
 
-            {/* Special Offers Section */}
-            <section className="py-20 bg-white dark:bg-gray-900">
-                <div className="container mx-auto px-4">
-                    <div className="text-center mb-12">
-                        <h2 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">Special Offers</h2>
-                        <p className="text-xl text-gray-600 dark:text-gray-400">Limited time deals you don't want to miss</p>
+            <section className="bg-slate-50 py-20 dark:bg-slate-950">
+                <div className="mx-auto max-w-7xl px-4 lg:px-6">
+                    <div className="mb-10 text-center">
+                        <p className="text-sm font-semibold uppercase tracking-[0.22em] text-emerald-600">Why shops choose us</p>
+                        <h2 className="mt-3 text-3xl font-bold text-slate-900 dark:text-white md:text-4xl">
+                            Built for ration purchases, sales, and supply tracking
+                        </h2>
                     </div>
-                    <div className="grid md:grid-cols-3 gap-8">
-                        <Card className="overflow-hidden border-2 border-green-200 dark:border-green-800">
-                            <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-4">
-                                <Badge className="bg-white text-green-600">50% OFF</Badge>
-                            </div>
-                            <CardHeader>
-                                <CardTitle>Weekly Fresh Box</CardTitle>
-                                <CardDescription>Curated selection of seasonal fruits and vegetables</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="flex items-baseline gap-2 mb-4">
-                                    <span className="text-3xl font-bold text-gray-900 dark:text-gray-100">$24.99</span>
-                                    <span className="text-xl text-gray-500 line-through">$49.99</span>
-                                </div>
-                                <Button className="w-full bg-green-600 hover:bg-green-700">Add to Cart</Button>
-                            </CardContent>
-                        </Card>
-                        <Card className="overflow-hidden border-2 border-orange-200 dark:border-orange-800">
-                            <div className="bg-gradient-to-r from-orange-500 to-amber-600 p-4">
-                                <Badge className="bg-white text-orange-600">BOGO FREE</Badge>
-                            </div>
-                            <CardHeader>
-                                <CardTitle>Organic Eggs</CardTitle>
-                                <CardDescription>Free-range organic eggs, dozen pack</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="flex items-baseline gap-2 mb-4">
-                                    <span className="text-3xl font-bold text-gray-900 dark:text-gray-100">$5.99</span>
-                                    <span className="text-sm text-gray-500">Buy 1 Get 1 Free</span>
-                                </div>
-                                <Button className="w-full bg-orange-600 hover:bg-orange-700">Add to Cart</Button>
-                            </CardContent>
-                        </Card>
-                        <Card className="overflow-hidden border-2 border-blue-200 dark:border-blue-800">
-                            <div className="bg-gradient-to-r from-blue-500 to-cyan-600 p-4">
-                                <Badge className="bg-white text-blue-600">30% OFF</Badge>
-                            </div>
-                            <CardHeader>
-                                <CardTitle>Premium Dairy Pack</CardTitle>
-                                <CardDescription>Milk, cheese, yogurt bundle</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="flex items-baseline gap-2 mb-4">
-                                    <span className="text-3xl font-bold text-gray-900 dark:text-gray-100">$19.99</span>
-                                    <span className="text-xl text-gray-500 line-through">$28.99</span>
-                                </div>
-                                <Button className="w-full bg-blue-600 hover:bg-blue-700">Add to Cart</Button>
-                            </CardContent>
-                        </Card>
+
+                    <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+                        {featureCards.map(({ icon: Icon, title, description }) => (
+                            <Card key={title} className="border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                                <CardHeader>
+                                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
+                                        <Icon className="h-5 w-5" />
+                                    </div>
+                                    <CardTitle className="text-xl">{title}</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <CardDescription className="text-base leading-7">{description}</CardDescription>
+                                </CardContent>
+                            </Card>
+                        ))}
                     </div>
                 </div>
             </section>
 
-            {/* Why Choose Us Section */}
-            <section className="py-20 bg-gradient-to-br from-green-600 to-emerald-700 text-white">
-                <div className="container mx-auto px-4">
-                    <div className="text-center mb-12">
-                        <h2 className="text-4xl font-bold mb-4">Why Choose FreshMart?</h2>
-                        <p className="text-xl text-green-100">We're committed to bringing you the best</p>
+            <section className="bg-white py-20 dark:bg-slate-900">
+                <div className="mx-auto max-w-7xl px-4 lg:px-6">
+                    <div className="mb-12 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+                        <div>
+                            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-amber-600">Popular products</p>
+                            <h2 className="mt-2 text-3xl font-bold text-slate-900 dark:text-white md:text-4xl">
+                                Essential ration stock ready to move
+                            </h2>
+                        </div>
+                        <Link href="/products" className="inline-flex items-center gap-2 text-sm font-semibold text-emerald-600">
+                            Browse all items
+                            <ArrowRight className="h-4 w-4" />
+                        </Link>
                     </div>
-                    <div className="grid md:grid-cols-3 gap-8">
-                        <div className="text-center">
-                            <div className="bg-white/20 rounded-full w-20 h-20 mx-auto flex items-center justify-center mb-6">
-                                <ShoppingBasket className="h-10 w-10" />
+
+                    <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+                        {productGroups.map((product) => (
+                            <div key={product.name} className="rounded-2xl border border-slate-200 bg-slate-50 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-slate-700 dark:bg-slate-800/80">
+                                <div className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${product.color}`}>
+                                    {product.name}
+                                </div>
+                                <div className="mt-5 rounded-2xl bg-gradient-to-br from-emerald-100 via-white to-amber-100 p-4 dark:from-slate-700 dark:via-slate-800 dark:to-slate-700">
+                                    <div className="flex h-16 items-center justify-center rounded-xl bg-white/80 text-2xl font-black text-slate-900 shadow-sm dark:bg-slate-900/80 dark:text-white">
+                                        {product.name.slice(0, 2)}
+                                    </div>
+                                </div>
+                                <p className="mt-4 text-sm text-slate-600 dark:text-slate-300">{product.count}</p>
                             </div>
-                            <h3 className="text-2xl font-bold mb-3">Wide Selection</h3>
-                            <p className="text-green-100">Over 5,000 products from local farms and brands</p>
-                        </div>
-                        <div className="text-center">
-                            <div className="bg-white/20 rounded-full w-20 h-20 mx-auto flex items-center justify-center mb-6">
-                                <Leaf className="h-10 w-10" />
-                            </div>
-                            <h3 className="text-2xl font-bold mb-3">Farm Fresh</h3>
-                            <p className="text-green-100">Direct from farmers within 24 hours of harvest</p>
-                        </div>
-                        <div className="text-center">
-                            <div className="bg-white/20 rounded-full w-20 h-20 mx-auto flex items-center justify-center mb-6">
-                                <ShieldCheck className="h-10 w-10" />
-                            </div>
-                            <h3 className="text-2xl font-bold mb-3">Trusted Quality</h3>
-                            <p className="text-green-100">Every product inspected for freshness and quality</p>
-                        </div>
+                        ))}
                     </div>
                 </div>
             </section>
 
-            {/* Testimonials Section */}
-            <section className="py-20 bg-gray-50 dark:bg-gray-800">
-                <div className="container mx-auto px-4">
-                    <div className="text-center mb-12">
-                        <h2 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">What Our Customers Say</h2>
-                        <p className="text-xl text-gray-600 dark:text-gray-400">Join thousands of happy shoppers</p>
+            <section className="bg-gradient-to-br from-emerald-600 to-emerald-800 py-20 text-white">
+                <div className="mx-auto max-w-7xl px-4 lg:px-6">
+                    <div className="grid items-center gap-10 lg:grid-cols-3">
+                        <div className="lg:col-span-2">
+                            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-emerald-100">Simple workflow</p>
+                            <h2 className="mt-3 text-3xl font-bold md:text-4xl">From purchase order to sale record in a few steps.</h2>
+                        </div>
+                        <div className="flex justify-start lg:justify-end">
+                            <Link href="/login">
+                                <Button size="lg" className="bg-white text-emerald-700 hover:bg-slate-100">
+                                    Open dashboard
+                                </Button>
+                            </Link>
+                        </div>
                     </div>
-                    <div className="grid md:grid-cols-3 gap-8">
-                        <Card className="border-2">
-                            <CardHeader>
-                                <div className="flex items-center gap-1 mb-4">
-                                    {[...Array(5)].map((_, i) => (
-                                        <Star key={i} className="h-5 w-5 text-yellow-500 fill-yellow-500" />
-                                    ))}
+
+                    <div className="mt-10 grid gap-6 md:grid-cols-3">
+                        {steps.map(({ icon: Icon, title, detail }, index) => (
+                            <div key={title} className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+                                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-xl font-bold">
+                                    <Icon className="h-5 w-5" />
                                 </div>
-                                <CardDescription className="text-base">
-                                    "The freshest produce I've ever had delivered! The quality is consistently amazing and the delivery is always on time."
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="flex items-center gap-3">
-                                    <div className="bg-green-100 dark:bg-green-900/30 rounded-full w-12 h-12 flex items-center justify-center">
-                                        <span className="text-green-600 dark:text-green-400 font-bold">SM</span>
-                                    </div>
-                                    <div>
-                                        <p className="font-semibold text-gray-900 dark:text-gray-100">Sarah M.</p>
-                                        <p className="text-sm text-gray-600 dark:text-gray-400">Regular Customer</p>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                        <Card className="border-2">
-                            <CardHeader>
-                                <div className="flex items-center gap-1 mb-4">
-                                    {[...Array(5)].map((_, i) => (
-                                        <Star key={i} className="h-5 w-5 text-yellow-500 fill-yellow-500" />
-                                    ))}
-                                </div>
-                                <CardDescription className="text-base">
-                                    "Finally a grocery service that understands quality! Their organic selection is incredible and prices are very competitive."
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="flex items-center gap-3">
-                                    <div className="bg-blue-100 dark:bg-blue-900/30 rounded-full w-12 h-12 flex items-center justify-center">
-                                        <span className="text-blue-600 dark:text-blue-400 font-bold">JD</span>
-                                    </div>
-                                    <div>
-                                        <p className="font-semibold text-gray-900 dark:text-gray-100">John D.</p>
-                                        <p className="text-sm text-gray-600 dark:text-gray-400">Family of 4</p>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                        <Card className="border-2">
-                            <CardHeader>
-                                <div className="flex items-center gap-1 mb-4">
-                                    {[...Array(5)].map((_, i) => (
-                                        <Star key={i} className="h-5 w-5 text-yellow-500 fill-yellow-500" />
-                                    ))}
-                                </div>
-                                <CardDescription className="text-base">
-                                    "The app is so easy to use and the customer service is excellent. They replaced a damaged item immediately without any hassle."
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="flex items-center gap-3">
-                                    <div className="bg-purple-100 dark:bg-purple-900/30 rounded-full w-12 h-12 flex items-center justify-center">
-                                        <span className="text-purple-600 dark:text-purple-400 font-bold">EW</span>
-                                    </div>
-                                    <div>
-                                        <p className="font-semibold text-gray-900 dark:text-gray-100">Emily W.</p>
-                                        <p className="text-sm text-gray-600 dark:text-gray-400">Busy Professional</p>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
+                                <p className="mb-2 text-sm font-semibold text-emerald-100">0{index + 1}</p>
+                                <h3 className="text-xl font-semibold">{title}</h3>
+                                <p className="mt-3 text-sm leading-7 text-emerald-50/90">{detail}</p>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </section>
 
-            {/* Newsletter Section */}
-            <section className="py-20 bg-white dark:bg-gray-900">
-                <div className="container mx-auto px-4">
-                    <Card className="max-w-3xl mx-auto border-2 border-green-200 dark:border-green-800">
+            <section className="bg-slate-50 py-20 dark:bg-slate-950">
+                <div className="mx-auto max-w-5xl px-4 lg:px-6">
+                    <Card className="border-emerald-200 bg-white shadow-xl dark:border-slate-700 dark:bg-slate-900">
                         <CardHeader className="text-center">
-                            <CardTitle className="text-3xl">Get 10% Off Your First Order</CardTitle>
-                            <CardDescription className="text-lg">
-                                Subscribe to our newsletter for exclusive deals, recipes, and updates
+                            <CardTitle className="text-3xl font-bold text-slate-900 dark:text-white">Ready to manage your ration shop smarter?</CardTitle>
+                            <CardDescription className="mt-2 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-300">
+                                Keep purchase costs, sales revenue, voucher tracking, and inventory stock under control with one connected dashboard.
                             </CardDescription>
                         </CardHeader>
-                        <CardContent>
-                            <div className="flex flex-col sm:flex-row gap-4">
-                                <Input 
-                                    placeholder="Enter your email address" 
-                                    className="flex-1 h-12 text-base"
-                                />
-                                <Button size="lg" className="bg-green-600 hover:bg-green-700">
-                                    Subscribe
+                        <CardContent className="flex flex-col justify-center gap-4 pb-8 sm:flex-row">
+                            <Link href="/register">
+                                <Button size="lg" className="bg-emerald-600 text-white hover:bg-emerald-700">
+                                    Create account
                                 </Button>
-                            </div>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-4 text-center">
-                                No spam, unsubscribe at any time. We respect your privacy.
-                            </p>
+                            </Link>
+                            <Link href="/login">
+                                <Button size="lg" variant="outline" className="border-slate-300 text-slate-800 dark:border-slate-700 dark:text-slate-100">
+                                    Explore dashboard
+                                </Button>
+                            </Link>
                         </CardContent>
                     </Card>
                 </div>
             </section>
-
-            {/* Footer */}
-            <footer className="bg-gray-900 text-gray-300 py-16">
-                <div className="container mx-auto px-4">
-                    <div className="grid md:grid-cols-4 gap-8 mb-12">
-                        <div>
-                            <div className="flex items-center gap-2 mb-4">
-                                <ShoppingBasket className="h-8 w-8 text-green-500" />
-                                <span className="text-2xl font-bold text-white">FreshMart</span>
-                            </div>
-                            <p className="text-gray-400 mb-4">
-                                Your trusted local grocery store delivering fresh quality products to your doorstep.
-                            </p>
-                            <div className="flex gap-4">
-                                <div className="bg-gray-800 rounded-full w-10 h-10 flex items-center justify-center hover:bg-green-600 transition-colors cursor-pointer">
-                                    <span className="text-sm">f</span>
-                                </div>
-                                <div className="bg-gray-800 rounded-full w-10 h-10 flex items-center justify-center hover:bg-green-600 transition-colors cursor-pointer">
-                                    <span className="text-sm">t</span>
-                                </div>
-                                <div className="bg-gray-800 rounded-full w-10 h-10 flex items-center justify-center hover:bg-green-600 transition-colors cursor-pointer">
-                                    <span className="text-sm">in</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div>
-                            <h4 className="text-lg font-semibold text-white mb-4">Quick Links</h4>
-                            <ul className="space-y-2">
-                                <li><Link href="/shop" className="hover:text-green-400 transition-colors">Shop Now</Link></li>
-                                <li><Link href="/deals" className="hover:text-green-400 transition-colors">Special Deals</Link></li>
-                                <li><Link href="/about" className="hover:text-green-400 transition-colors">About Us</Link></li>
-                                <li><Link href="/contact" className="hover:text-green-400 transition-colors">Contact</Link></li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h4 className="text-lg font-semibold text-white mb-4">Customer Service</h4>
-                            <ul className="space-y-2">
-                                <li><Link href="/faq" className="hover:text-green-400 transition-colors">FAQ</Link></li>
-                                <li><Link href="/delivery" className="hover:text-green-400 transition-colors">Delivery Info</Link></li>
-                                <li><Link href="/returns" className="hover:text-green-400 transition-colors">Returns Policy</Link></li>
-                                <li><Link href="/support" className="hover:text-green-400 transition-colors">Support</Link></li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h4 className="text-lg font-semibold text-white mb-4">Contact Us</h4>
-                            <ul className="space-y-2">
-                                <li className="flex items-center gap-2">
-                                    <span className="text-green-500">📍</span>
-                                    123 Fresh Street, Market City
-                                </li>
-                                <li className="flex items-center gap-2">
-                                    <span className="text-green-500">📞</span>
-                                    (555) 123-4567
-                                </li>
-                                <li className="flex items-center gap-2">
-                                    <span className="text-green-500">✉️</span>
-                                    hello@freshmart.com
-                                </li>
-                                <li className="flex items-center gap-2">
-                                    <span className="text-green-500">🕐</span>
-                                    Mon-Sat: 7AM - 10PM
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div className="border-t border-gray-800 pt-8 text-center text-gray-400">
-                        <p>&copy; 2024 FreshMart. All rights reserved.</p>
-                    </div>
-                </div>
-            </footer>
         </>
     );
 }
